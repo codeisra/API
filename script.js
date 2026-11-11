@@ -1,4 +1,6 @@
+
 const url = "https://dummyjson.com/posts?limit=10";
+
 const postContainer = document.querySelector(".post-list");
 const postDetailContainer = document.querySelector("#post-details");
 const commentContainer = document.querySelector("#comments");
@@ -11,7 +13,6 @@ const editButton = document.querySelector("#edit-post");
 if (postContainer) {
 
     fetch(url)
-
         .then(response => {
             if (!response.ok) {
                 throw new Error("Error");
@@ -25,17 +26,20 @@ if (postContainer) {
                 <div class="post">
                     <h2>${post.title}</h2>
                     <p>${post.body}</p>
-                    <button onclick="location.href='post.html?id=${post.id}'">Read More</button>
+                    <button onclick="location.href='post.html?id=${post.id}'">
+                        Read More
+                    </button>
+                    <button onclick="deletePost(${post.id}, this)">
+                        Delete
+                    </button>
                 </div>
                 `;
             });
         })
 
         .catch(() => {
-            postContainer.textContent = "Error fetching posts. ";
-
+            postContainer.textContent = "Error fetching posts.";
         });
-
 }
 
 if (postDetailContainer) {
@@ -55,16 +59,14 @@ if (postDetailContainer) {
 
         .then(data => {
             postDetailContainer.innerHTML = `
-                    <h2>${data.title}</h2>
-                    <p>${data.body}</p>
+                <h2>${data.title}</h2>
+                <p>${data.body}</p>
             `;
-        }
-        )
+        })
+
         .catch(() => {
             postDetailContainer.textContent = "Error fetching post details.";
-
-        }
-        )
+        });
 
     const commentUrl = `https://dummyjson.com/posts/${postId}/comments`;
 
@@ -75,6 +77,7 @@ if (postDetailContainer) {
             }
             return response.json();
         })
+
         .then(data => {
             data.comments.forEach(comment => {
                 commentContainer.innerHTML += `
@@ -84,21 +87,22 @@ if (postDetailContainer) {
                     </div>
                 `;
             });
-
         })
+
         .catch(() => {
             commentContainer.textContent = "Error fetching comments.";
-        }
-        )
+        });
 
     submitComment.addEventListener("click", () => {
-        const commentText = commentinput.value
+
+        const commentText = commentinput.value;
+
         if (commentText.trim() === "") {
             alert("Comment cannot be empty.");
             return;
         }
 
-        fetch(`https://dummyjson.com/comments/add`, {
+        fetch("https://dummyjson.com/comments/add", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -109,26 +113,28 @@ if (postDetailContainer) {
                 userId: 1
             })
         })
+
             .then(response => {
                 if (!response.ok) {
                     throw new Error("Error");
                 }
                 return response.json();
             })
+
             .then(data => {
                 commentContainer.innerHTML += `
                     <div class="comment">
-                        <h3> New Comment </h3>
+                        <h3>New Comment</h3>
                         <p>${data.body}</p>
                     </div>
                 `;
+
                 commentinput.value = "";
             })
+
             .catch(() => {
                 alert("Error submitting comment.");
             });
-
-
     });
 
     editButton.addEventListener("click", async () => {
@@ -143,16 +149,37 @@ if (postDetailContainer) {
                     body: editBody.value
                 })
             });
+
             if (!response.ok) {
                 throw new Error("Error");
             }
+
             const data = await response.json();
+
             postDetailContainer.innerHTML = `
-                    <h2>${data.title}</h2>
-                    <p>${data.body}</p>
-                `;
+                <h2>${data.title}</h2>
+                <p>${data.body}</p>
+            `;
+
         } catch (error) {
             postDetailContainer.textContent = "Error updating post.";
         }
     });
+}
+
+async function deletePost(postId, button) {
+    try {
+        const response = await fetch(`https://dummyjson.com/posts/${postId}`, {
+            method: "DELETE"
+        });
+
+        if (!response.ok) {
+            throw new Error("Error");
+        }
+
+        button.parentElement.remove();
+"
+    } catch (error) {
+        alert("Error deleting post.");
+    }
 }
